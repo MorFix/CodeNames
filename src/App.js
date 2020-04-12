@@ -29,12 +29,10 @@ import {isEntertainmentAvailable} from './services/get-hever-status';
 
 const App: () => React$Node = () => {
     const [isAvailableText, setIsAvailableText] = useState('Loading...');
-    const [debugData, setDebugData] = useState('');
 
     const respondToStatus = () => {
         isEntertainmentAvailable()
-            .then(({a: isAvailable, s}) => {
-                setDebugData(s);
+            .then(isAvailable => {
                 setIsAvailableText(`Hever entertainment ${isAvailable ? 'is' : 'NOT'} available right now`);
             })
             .catch(e => {

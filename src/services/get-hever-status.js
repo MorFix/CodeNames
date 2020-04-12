@@ -17,29 +17,42 @@ const parseHeaderValues = headerString => (headerString || '')
     .reduce((all, [name, value]) => ({...all, [name]: value}), {}) || {};
 
 const getInitialCookies = async () => {
-    const response = await fetch(`${baseUrl}/signin.aspx`, {method: "GET", credentials: 'omit'});
+    const response = await fetch(`${baseUrl}/signin.aspx`, {credentials: 'omit'});
 
     return parseHeaderValues(response.headers.get('set-cookie'));
 };
 
-const getEntertainmentPage = async () => {
-    //return "NO SHOWS";
-};
-
-const hasNoShowsMessage = page => {
-    return page.includes("NO SHOWS");
-};
-
-const buildCookieHeader = initialCookies => ({Cookie: Object.keys(initialCookies)
-    .filter(cookieName => !IGNORED_COOKIES.includes(cookieName.toLowerCase()))
-    .map(cookieName => `${cookieName}=${initialCookies[cookieName]}`)
-    .join(';')});
-
-const getCN = async initialCookies => {
+const getEntertainmentPage = async cookies => {
     const options = {
         credentials: 'omit',
         headers: {
-            ...buildCookieHeader(initialCookies)
+            ...buildCookieHeader(cookies)
+        }
+    };
+
+    // TODO: Get the link from the text
+    const response = await fetch(`${baseUrl}/home_page.aspx?page=mcc_item,266006`, options);
+    const content = await readEncodedContent(response);
+
+    return HTMLParser.parse(content);
+};
+
+const hasNoShowsMessage = pageDom => {
+    return true;
+    // TODO: Complete work here
+    //return pageDom.includes("NO SHOWS");
+};
+
+const buildCookieHeader = cookies => ({Cookie: Object.keys(cookies)
+    .filter(cookieName => !IGNORED_COOKIES.includes(cookieName.toLowerCase()))
+    .map(cookieName => `${cookieName}=${cookies[cookieName]}`)
+    .join(';')});
+
+const getCN = async cookies => {
+    const options = {
+        credentials: 'omit',
+        headers: {
+            ...buildCookieHeader(cookies)
         }
     };
 
@@ -81,33 +94,34 @@ const readBlob = (blob, encoding) => {
 };
 
 const readEncodedContent = async response => {
-    const encoding = parseHeaderValues(response.headers.get('content-type'))['charset'];
+    const encoding = parseHeaderValues(response.headers.get('content-type'))['charset'] || 'windows-1255';
     const blob = await response.blob();
 
     return await readBlob(blob, encoding);
 };
 
-const buildLoginParams = async initialCookies => {
-    const cn = await getCN(initialCookies);
+// TODO: Config the credentials
+const buildLoginParams = cn => ({
+    cn,
+    tz: '',
+    password: '',
+    oMode: 'login',
+});
 
-    return {
-        cn,
-        tz: '',
-        password: '',
-        oMode: 'login',
-    };
-};
+const buildLoginHeaders = cookies => ({
+    'Content-Type': 'application/x-www-form-urlencoded',
+    Accept: '*/*',
+    ...buildCookieHeader(cookies)
+});
 
-const login = async initialCookies => {
+const login = async cookies => {
     const SUCCESS_TEXT = 'Ok...';
-    const loginParams = await buildLoginParams(initialCookies);
-    const headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: '*/*',
-        ...buildCookieHeader(initialCookies)
-    };
 
     const url = `${baseUrl}/signin.aspx`;
+    const cn = await getCN(cookies);
+
+    const loginParams = buildLoginParams(cn);
+    const headers = buildLoginHeaders(cookies);
     const options = {
         method: 'POST',
         credentials: 'omit',
@@ -126,12 +140,13 @@ const login = async initialCookies => {
 };
 
 export const isEntertainmentAvailable = async () => {
-    const initialCookies = await getInitialCookies();
-    const newCookies = await login(initialCookies);
+    const cookies = await getInitialCookies();
+    const newCookies = await login(cookies);
 
-    Object.assign(initialCookies, newCookies);
+    debugger;
+    Object.assign(cookies, newCookies);
 
-    const response = await getEntertainmentPage();
+    const pageDom = await getEntertainmentPage(cookies);
 
-    return {a: true, s: response};
+    return !hasNoShowsMessage(pageDom);
 };
