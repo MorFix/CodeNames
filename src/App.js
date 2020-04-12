@@ -14,6 +14,7 @@ import {
     View,
     Text,
     StatusBar,
+    Button
 } from 'react-native';
 
 import {
@@ -30,15 +31,19 @@ const App: () => React$Node = () => {
     const [isAvailableText, setIsAvailableText] = useState('Loading...');
     const [debugData, setDebugData] = useState('');
 
-    useEffect(() => {
+    const respondToStatus = () => {
         isEntertainmentAvailable()
             .then(({a: isAvailable, s}) => {
                 setDebugData(s);
-                setIsAvailableText(`Hever entertainment ${isAvailable ? 'is' : 'NOT'} available right now`)
+                setIsAvailableText(`Hever entertainment ${isAvailable ? 'is' : 'NOT'} available right now`);
             })
-            .catch(() => {
-                setIsAvailableText("Cannot set hever entertainment status")
+            .catch(e => {
+                setIsAvailableText(`Cannot set hever entertainment status: ${e.message}`);
             });
+    };
+
+    useEffect(() => {
+        respondToStatus();
     }, [isAvailableText]);
 
     return (
@@ -56,9 +61,13 @@ const App: () => React$Node = () => {
                     )}
                     <View style={styles.body}>
                         <View style={styles.sectionContainer}>
-                            {Object.keys(debugData).map(key => (<Text key={key} style={styles.sectionTitle}>{key}:{debugData[key]}</Text>))}
+                            <Text>{isAvailableText}</Text>
+                            <Text/>
+                            <Button title="Render" onPress={respondToStatus}/>
 
-                            <Text style={styles.sectionTitle}>{isAvailableText}</Text>
+                            <Text/>
+                            <Text/>
+                            <Text/>
 
                             <Text style={styles.sectionTitle}>Step One</Text>
                             <Text style={styles.sectionDescription}>
