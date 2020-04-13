@@ -1,0 +1,8 @@
+{
+  "heverUrl": "https://www.hvr.co.il",
+  "loginPage": "signin.aspx",
+  "entertainmentPage": "home_page.aspx?page=mcc_item,266006",
+  "logoutPage": "logout.aspx",
+  "loginSuccessMessage": "Ok...",
+  "noShowsMessage": "לא תתקיימנה פעילויות"
+}

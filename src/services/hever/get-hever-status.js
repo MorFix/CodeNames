@@ -3,29 +3,32 @@ import fetchWithCookies from './fetch-with-cookies';
 import parseHeaderValues from './parse-header';
 import readEncodedContent from './read-response-content';
 
-const baseUrl = 'https://www.hvr.co.il';
+import {
+    heverUrl as baseUrl,
+    loginPage,
+    entertainmentPage,
+    logoutPage,
+    loginSuccessMessage,
+    noShowsMessage
+} from './config';
+
+const SET_COOKIE_HEADER_NAME = 'set-cookie';
 
 const getInitialCookies = async () => {
-    const response = await fetch(`${baseUrl}/signin.aspx`, {credentials: 'omit'});
+    const response = await fetch(`${baseUrl}/${loginPage}`, {credentials: 'omit'});
 
-    return parseHeaderValues(response.headers.get('set-cookie'));
+    return parseHeaderValues(response.headers.get(SET_COOKIE_HEADER_NAME));
 };
 
 const getEntertainmentPage = async cookies => {
-    const response = await fetchWithCookies(`${baseUrl}/home_page.aspx?page=mcc_item,266006`, null, cookies);
+    const response = await fetchWithCookies(`${baseUrl}/${entertainmentPage}`, null, cookies);
     const content = await readEncodedContent(response);
 
     return HTMLParser.parse(content);
 };
 
-const hasNoShowsMessage = pageText => {
-    const NO_SHOWS_MESSAGE = 'לא תתקיימנה פעילויות';
-
-    return pageText.includes(NO_SHOWS_MESSAGE);
-};
-
 const getCN = async cookies => {
-    const basicPageResponse = await fetchWithCookies(`${baseUrl}/signin.aspx`, null, cookies);
+    const basicPageResponse = await fetchWithCookies(`${baseUrl}/${loginPage}`, null, cookies);
     const basicPageContent = await readEncodedContent(basicPageResponse);
 
     const basicPageDom = HTMLParser.parse(basicPageContent);
@@ -42,55 +45,34 @@ const getCN = async cookies => {
     return cn;
 };
 
-// TODO: Config the credentials
-const buildLoginParams = cn => ({
-    cn,
-    tz: '',
-    password: '',
-    oMode: 'login',
-});
-
-const login = async cookies => {
-    const SUCCESS_TEXT = 'Ok...';
-
-    const url = `${baseUrl}/signin.aspx`;
+const login = async (tz, password, cookies) => {
     const cn = await getCN(cookies);
 
-    const loginParams = buildLoginParams(cn);
-    const headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: '*/*',
-    };
+    const loginParams = {cn, tz, password, oMode: 'login'};
+    const headers = {'Content-Type': 'application/x-www-form-urlencoded', Accept: '*/*'};
+    const options = {headers, method: 'POST', body: new URLSearchParams(loginParams).toString()};
 
-    const options = {
-        method: 'POST',
-        body: new URLSearchParams(loginParams).toString(),
-        headers
-    };
-
-    const loginResponse = await fetchWithCookies(url, options, cookies);
+    const loginResponse = await fetchWithCookies(`${baseUrl}/${loginPage}`, options, cookies);
     const content = await readEncodedContent(loginResponse);
 
-    if (content !== SUCCESS_TEXT) {
-        throw new Error(`Login failed: ${content}`)
+    if (content !== loginSuccessMessage) {
+        throw new Error(`Login failed: ${HTMLParser.parse(content)?.text.trim()}`)
     }
 
-    return parseHeaderValues(loginResponse.headers.get('set-cookie'));
+    return parseHeaderValues(loginResponse.headers.get(SET_COOKIE_HEADER_NAME));
 };
 
-export const getEntertainmentStatus = async () => {
-    const cookies = await getInitialCookies();
-    const newCookies = await login(cookies);
+export const getEntertainmentStatus = async (userId, password) => {
+    const initialCookies = await getInitialCookies();
+    const loginCookies = await login(userId, password, initialCookies);
 
-    Object.assign(cookies, newCookies);
+    const cookies = {...initialCookies, ...loginCookies};
 
-    const pageDom = await getEntertainmentPage(cookies);
-    const relevantText = pageDom.querySelectorAll('.box')[0]?.text.trim();
-
-    const isAvailable = !hasNoShowsMessage(relevantText);
+    const entertainmentPageDom = await getEntertainmentPage(cookies);
+    const relevantText = entertainmentPageDom.querySelectorAll('.box')[0]?.text.trim();
 
     // Log out
-    await fetchWithCookies(`${baseUrl}/logout.aspx`, null, cookies);
+    await fetchWithCookies(`${baseUrl}/${logoutPage}`, null, cookies);
 
-    return {isAvailable, content: relevantText};
+    return {isAvailable: !relevantText.includes(noShowsMessage), content: relevantText};
 };

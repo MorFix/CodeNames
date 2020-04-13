@@ -44,8 +44,8 @@ def flipper_post_install(installer)
   end
 end
 
-target 'codenames' do
-  # Pods for codenames
+target 'heverchecker' do
+  # Pods for heverchecker
   pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
   pod 'FBReactNativeSpec', :path => "../node_modules/react-native/Libraries/FBReactNativeSpec"
   pod 'RCTRequired', :path => "../node_modules/react-native/Libraries/RCTRequired"
@@ -77,7 +77,8 @@ target 'codenames' do
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
 
-  target 'codenamesTests' do
+
+  target 'hevercheckerTests' do
     inherit! :complete
     # Pods for testing
   end
@@ -94,10 +95,10 @@ target 'codenames' do
   end
 end
 
-target 'codenames-tvOS' do
-  # Pods for codenames-tvOS
+target 'heverchecker-tvOS' do
+  # Pods for heverchecker-tvOS
 
-  target 'codenames-tvOSTests' do
+  target 'heverchecker-tvOSTests' do
     inherit! :search_paths
     # Pods for testing
   end
