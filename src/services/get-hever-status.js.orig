@@ -100,11 +100,25 @@ const readEncodedContent = async response => {
     return await readBlob(blob, encoding);
 };
 
+<<<<<<< HEAD
+const buildLoginParams = async initialCookies => {
+    const cn = await getCN(initialCookies);
+
+    return {
+        cn,
+        tz: '',
+        password: '',
+        oMode: 'login',
+    };
+};
+
+const login = async initialCookies => {
+=======
 // TODO: Config the credentials
 const buildLoginParams = cn => ({
     cn,
-    tz: '',
-    password: '',
+    tz: '315825356',
+    password: '505950251',
     oMode: 'login',
 });
 
@@ -115,6 +129,7 @@ const buildLoginHeaders = cookies => ({
 });
 
 const login = async cookies => {
+>>>>>>> aaec7f7... can get entertainment page. little more work left
     const SUCCESS_TEXT = 'Ok...';
 
     const url = `${baseUrl}/signin.aspx`;
