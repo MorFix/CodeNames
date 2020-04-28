@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useMemo, useCallback} from 'react';
-import AVAILABILITY from '../constants/Availability.const';
-import StorageKeys from '../constants/StorageKeys.const';
+import AVAILABILITY from './constants/Availability.const';
+import StorageKeys from './constants/StorageKeys.const';
 
 import globalStyles from './global-styles';
 import {
@@ -16,7 +16,7 @@ import {AvailabilityText} from './AvailabilityText';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
-import {getEntertainmentStatus} from '../services/hever/get-hever-status';
+import {getEntertainmentStatus} from './get-hever-status';
 import {UserContext} from './user.context';
 import {Credentials} from './Credentials';
 

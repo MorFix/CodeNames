@@ -6,13 +6,15 @@ import readEncodedContent from './read-response-content';
 import {
   heverUrl as baseUrl,
   loginPage,
-  entertainmentPage,
+  homePage,
+  entertainmentPageTitle,
   logoutPage,
   loginSuccessMessage,
   noShowsMessage,
-} from './config';
+} from '../../config';
 
 const SET_COOKIE_HEADER_NAME = 'set-cookie';
+const HOME_PAGE_COOKIE_NAME = 'home_page';
 
 const getInitialCookies = async () => {
   const response = await fetch(`${baseUrl}/${loginPage}`, {
@@ -22,9 +24,57 @@ const getInitialCookies = async () => {
   return parseHeaderValues(response.headers.get(SET_COOKIE_HEADER_NAME));
 };
 
-const getEntertainmentPage = async cookies => {
+const getNavigationUrl = async cookies => {
+  const homePageResponse = await fetchWithCookies(
+    `${baseUrl}/${homePage}?page=${cookies[HOME_PAGE_COOKIE_NAME]}`,
+    null,
+    cookies,
+  );
+
+  const content = await readEncodedContent(homePageResponse);
+  const dom = HTMLParser.parse(content);
+
+  const url = dom.querySelector('#navHeader .nav')?.attributes?.title;
+  if (!url) {
+    throw new Error('Cannot find navigations pages JSON url');
+  }
+
+  return url;
+};
+
+const getNavigationJson = async cookies => {
+  const url = await getNavigationUrl(cookies);
   const response = await fetchWithCookies(
-    `${baseUrl}/${entertainmentPage}`,
+    `${baseUrl}/ajax/${url}`,
+    null,
+    cookies,
+  );
+
+  return await response.json();
+};
+
+const getEntertainmentPageUrl = async cookies => {
+  const navJson = await getNavigationJson(cookies);
+  const entertainmentPageEntry = navJson.row.find(
+    ({text}) => text === entertainmentPageTitle,
+  );
+
+  if (!entertainmentPageEntry) {
+    throw new Error('Cannot find a menu entry for entertainment page');
+  }
+
+  const {url} = entertainmentPageEntry;
+
+  return typeof url !== 'string'
+    ? `${homePage}?${new URLSearchParams(url).toString()}`
+    : url;
+};
+
+const getEntertainmentPage = async cookies => {
+  const entertainmentPagePath = await getEntertainmentPageUrl(cookies);
+
+  const response = await fetchWithCookies(
+    `${baseUrl}/${entertainmentPagePath}`,
     null,
     cookies,
   );
@@ -39,8 +89,8 @@ const getCN = async cookies => {
     null,
     cookies,
   );
-  const basicPageContent = await readEncodedContent(basicPageResponse);
 
+  const basicPageContent = await readEncodedContent(basicPageResponse);
   const basicPageDom = HTMLParser.parse(basicPageContent);
 
   const cn = basicPageDom
@@ -76,7 +126,9 @@ const login = async (tz, password, cookies) => {
   const content = await readEncodedContent(loginResponse);
 
   if (content !== loginSuccessMessage) {
-    throw new Error(`ההתחברות נכשלה: ${HTMLParser.parse(content)?.text.trim()}`);
+    throw new Error(
+      `ההתחברות נכשלה: ${HTMLParser.parse(content)?.text.trim()}`,
+    );
   }
 
   return parseHeaderValues(loginResponse.headers.get(SET_COOKIE_HEADER_NAME));

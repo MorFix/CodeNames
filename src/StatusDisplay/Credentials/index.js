@@ -4,7 +4,7 @@ import {UserContext} from '../user.context';
 
 import styles from './styles';
 import globalStyles from '../global-styles';
-import StorageKeys from '../../constants/StorageKeys.const';
+import StorageKeys from '../constants/StorageKeys.const';
 
 export const Credentials = ({onSave}) => {
   const [userId, setUserId] = useState('');

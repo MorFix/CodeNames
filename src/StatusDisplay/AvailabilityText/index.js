@@ -1,10 +1,10 @@
-// TODO: WORK HERE
-
 import React from 'react';
 import {View, Text} from 'react-native';
 
-import AVAILABILITY from '../../constants/Availability.const';
+import AVAILABILITY from '../constants/Availability.const';
 import globalStyles from '../global-styles';
+
+import {entertainmentPageTitle} from '../../config';
 
 export const AvailabilityText = ({availabilityData, isRefreshing}) => {
   if (isRefreshing) {
@@ -20,8 +20,8 @@ export const AvailabilityText = ({availabilityData, isRefreshing}) => {
       return (
         <View>
           <Text style={globalStyles.title}>
-            מופעים והצגות באתר חבר <Text style={styles.success}>זמינים</Text>{' '}
-            כעת
+            {entertainmentPageTitle} באתר חבר{'\n'}
+            <Text style={styles.success}>זמינים לרכישה</Text> כעת
           </Text>
           <Text>{availabilityData.pageContent}</Text>
         </View>
@@ -30,8 +30,8 @@ export const AvailabilityText = ({availabilityData, isRefreshing}) => {
       return (
         <View>
           <Text style={globalStyles.title}>
-            מופעים והצגות באתר חבר{' '}
-            <Text style={styles.error}>לא זמינים לרכישה</Text> כרגע
+            {entertainmentPageTitle} באתר חבר{'\n'}
+            <Text style={styles.error}>לא זמינים לרכישה</Text> כעת
           </Text>
           <Text>{availabilityData.pageContent}</Text>
         </View>
@@ -40,9 +40,12 @@ export const AvailabilityText = ({availabilityData, isRefreshing}) => {
       return (
         <View>
           <Text style={globalStyles.title}>
-            לא ניתן לקבוע את סטטוס המופעים באתר חבר בעקבות השגיאה הבאה:
+            לא ניתן לקבוע את סטטוס {entertainmentPageTitle} באתר חבר בעקבות
+            השגיאה הבאה:
           </Text>
-          <Text style={[styles.error, styles.highlight]}>{availabilityData.error.message}</Text>
+          <Text style={[styles.error, styles.highlight]}>
+            {availabilityData.error.message}
+          </Text>
         </View>
       );
     default:
