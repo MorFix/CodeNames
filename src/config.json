@@ -3,7 +3,6 @@
   "loginPage": "signin.aspx",
   "homePage": "home_page.aspx",
   "entertainmentPageTitle": "מופעים והצגות",
-  "logoutPage": "logout.aspx",
   "loginSuccessMessage": "Ok...",
   "noShowsMessage": "לא תתקיימנה פעילויות"
 }

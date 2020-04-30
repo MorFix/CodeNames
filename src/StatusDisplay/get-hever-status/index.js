@@ -8,7 +8,6 @@ import {
   loginPage,
   homePage,
   entertainmentPageTitle,
-  logoutPage,
   loginSuccessMessage,
   noShowsMessage,
 } from '../../config';
@@ -24,13 +23,15 @@ const getInitialCookies = async () => {
   return parseHeaderValues(response.headers.get(SET_COOKIE_HEADER_NAME));
 };
 
-const getNavigationUrl = async cookies => {
-  const homePageResponse = await fetchWithCookies(
+const getHomePage = async cookies =>
+  await fetchWithCookies(
     `${baseUrl}/${homePage}?page=${cookies[HOME_PAGE_COOKIE_NAME]}`,
     null,
     cookies,
   );
 
+const getNavigationUrl = async cookies => {
+  const homePageResponse = await getHomePage(cookies);
   const content = await readEncodedContent(homePageResponse);
   const dom = HTMLParser.parse(content);
 
@@ -134,6 +135,25 @@ const login = async (tz, password, cookies) => {
   return parseHeaderValues(loginResponse.headers.get(SET_COOKIE_HEADER_NAME));
 };
 
+const getLogoutUrl = async cookies => {
+  const homePageResponse = await getHomePage(cookies);
+  const content = await readEncodedContent(homePageResponse);
+  const dom = HTMLParser.parse(content);
+
+  const url = dom.querySelector('#topLeft span a')?.attributes?.href;
+  if (!url) {
+    throw new Error('Cannot find logout url');
+  }
+
+  return url;
+};
+
+const logout = async cookies => {
+  const logoutPage = await getLogoutUrl(cookies);
+
+  return await fetchWithCookies(`${baseUrl}/${logoutPage}`, null, cookies);
+};
+
 export const getEntertainmentStatus = async (userId, password) => {
   const initialCookies = await getInitialCookies();
   const loginCookies = await login(userId, password, initialCookies);
@@ -145,8 +165,11 @@ export const getEntertainmentStatus = async (userId, password) => {
     .querySelectorAll('.box')[0]
     ?.text.trim();
 
-  // Log out
-  await fetchWithCookies(`${baseUrl}/${logoutPage}`, null, cookies);
+  try {
+    await logout(cookies);
+  } catch (e) {
+    console.error(e);
+  }
 
   return {
     isAvailable: !relevantText.includes(noShowsMessage),
