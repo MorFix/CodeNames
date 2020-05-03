@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text} from 'react-native';
 
-import AVAILABILITY from '../constants/Availability.const';
+import AVAILABILITY from '../../constants/Availability.const';
 import globalStyles from '../global-styles';
 
 import {entertainmentPageTitle} from '../../config';

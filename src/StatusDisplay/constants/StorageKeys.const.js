@@ -1,6 +1,0 @@
-const CREDENTIALS_STORE_NAME = '@userCredentialsStore';
-
-export default {
-  CREDENTIALS_USER_KEY: `${CREDENTIALS_STORE_NAME}:userid`,
-  CREDENTIALS_PASSWORD_KEY: `${CREDENTIALS_STORE_NAME}:password`,
-};
