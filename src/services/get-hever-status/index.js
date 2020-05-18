@@ -162,7 +162,7 @@ export const getEntertainmentStatus = async (userId, password) => {
 
   const entertainmentPageDom = await getEntertainmentPage(cookies);
   const relevantText = entertainmentPageDom
-    .querySelectorAll('.box')[0]
+    .querySelectorAll('.igm-text')[0]
     ?.text.trim();
 
   try {
