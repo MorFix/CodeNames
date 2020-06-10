@@ -172,7 +172,7 @@ export const getEntertainmentStatus = async (userId, password) => {
   }
 
   return {
-    isAvailable: !relevantText.includes(noShowsMessage),
+    isAvailable: !relevantText?.includes(noShowsMessage),
     content: relevantText,
   };
 };
